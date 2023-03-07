@@ -15,10 +15,11 @@ class MainActivity : AppCompatActivity() {
 
         // set the fragment container inside of activity_main
         val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-        if (currentFragment == null) { // if there is no fcurrent fragment
-            val fragment = CrimeFragment() // create a new CrimeFragment using the constructor
-            supportFragmentManager.beginTransaction()
-                .add(R.id.fragment_container, fragment) // add the fragement to the fragment container
+        if (currentFragment == null) { // if there is no current fragment
+            val fragment = CrimeListFragment.newInstance() // create a new CrimeFragment using the companion object
+            supportFragmentManager
+                .beginTransaction()
+                .add(R.id.fragment_container, fragment) // add the fragment to the fragment container
                 .commit() // commit the "transaction" in .beginTransaction
         }
     }
