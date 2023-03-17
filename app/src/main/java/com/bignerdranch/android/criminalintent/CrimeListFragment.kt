@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,16 +18,24 @@ private const val TAG = "CrimeListFragment"
 
 class CrimeListFragment : Fragment() {
     private lateinit var crimeRecyclerView: RecyclerView
-    private var adapter: CrimeAdapter? = null
+    /* Because the recyclerView will have to wait for results from the database before it can
+    * populate the recyclerView with crimes, initialize the recycler view adapter with an empty crime
+    * list to start.  Then update with the new list of crimes when new data is published to LiveData*/
+    private var adapter: CrimeAdapter? = CrimeAdapter(emptyList()) // init an empty list.
 
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeListViewModel::class.java)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, "Total crimes: ${crimeListViewModel.crimes.size}")
-    }
+    /* Below references the old ViewModel, which depends on MainActivity.
+    * The old view model is not compatible with Room, since Room requires a separate thread to function
+    * because database access may take longer than acceptable.
+    *
+    * "CrimeListViewModel now exposes the LiveData returned from your repository. p.237" */
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        Log.d(TAG, "Total crimes: ${crimeListViewModel.crimes.size}")
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,15 +46,27 @@ class CrimeListFragment : Fragment() {
 
         crimeRecyclerView = view.findViewById(R.id.crime_recycler_view) as RecyclerView
         crimeRecyclerView.layoutManager = LinearLayoutManager(context)
-
-        updateUI()
-
+        crimeRecyclerView.adapter = adapter
+//        updateUI() // Old ViewModel
         return view
     }
 
-    private fun updateUI() {
-        val crimes = crimeListViewModel.crimes
-        adapter = CrimeAdapter(crimes)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState) // Allows .onViewCreated() to run as intended.
+        crimeListViewModel.crimeListLiveData.observe( // In addition, when there's a valid ViewModel...
+            viewLifecycleOwner, // Keeps an eye on the state of the Fragment's lifecycle.
+            Observer { crimes -> // The Observer implementation - keeps an eye on new data in LiveData
+                crimes?.let { // If there are crimes, do the following:
+                    Log.i(TAG, "Got crimes ${crimes.size}") // Logcat message
+                    updateUI(crimes) // Send crimes to the UI
+                }
+            }
+        )
+    }
+
+    private fun updateUI(crimes: List<Crime>) {
+//        val crimes = crimeListViewModel.crimes // Old ViewModel
+        adapter = CrimeAdapter(crimes) // Send crimes to CrimeAdapter
         crimeRecyclerView.adapter = adapter
     }
 
