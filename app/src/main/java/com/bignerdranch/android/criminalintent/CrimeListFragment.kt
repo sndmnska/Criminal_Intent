@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,10 +14,22 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.util.*
+import javax.security.auth.callback.Callback
 
 private const val TAG = "CrimeListFragment"
 
 class CrimeListFragment : Fragment() {
+    /**
+     * Required interface for hosting activities
+     */
+    interface Callbacks {
+        fun onCrimeSelected(crimeId: UUID)
+    }
+
+    private var callbacks: Callbacks? = null
+
+
     private lateinit var crimeRecyclerView: RecyclerView
     /* Because the recyclerView will have to wait for results from the database before it can
     * populate the recyclerView with crimes, initialize the recycler view adapter with an empty crime
@@ -25,6 +38,11 @@ class CrimeListFragment : Fragment() {
 
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeListViewModel::class.java)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        callbacks = context as Callbacks?
     }
 
     /* Below references the old ViewModel, which depends on MainActivity.
@@ -64,6 +82,11 @@ class CrimeListFragment : Fragment() {
         )
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        callbacks = null
+    }
+
     private fun updateUI(crimes: List<Crime>) {
 //        val crimes = crimeListViewModel.crimes // Old ViewModel
         adapter = CrimeAdapter(crimes) // Send crimes to CrimeAdapter
@@ -94,8 +117,7 @@ class CrimeListFragment : Fragment() {
         }
 
         override fun onClick(v: View) {
-            Toast.makeText(context, "${crime.title} pressed!",
-                Toast.LENGTH_SHORT).show()
+           callbacks?.onCrimeSelected(crime.id)
         }
     }
 
