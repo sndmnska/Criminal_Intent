@@ -3,9 +3,7 @@ package com.bignerdranch.android.criminalintent
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -43,6 +41,11 @@ class CrimeListFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         callbacks = context as Callbacks?
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
     }
 
     /* Below references the old ViewModel, which depends on MainActivity.
@@ -87,6 +90,28 @@ class CrimeListFragment : Fragment() {
         callbacks = null
     }
 
+
+    // Inflating a menu resource.
+    // onCreateOptionsMenu is not required, but recommended as a matter of convention.  This assures that
+    // all menu functionality defined by the superclass will still work.
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_crime_list, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.new_crime -> {
+                val crime = Crime()
+                crimeListViewModel.addCrime(crime)
+                callbacks?.onCrimeSelected(crime.id)
+                true // indicates this MenuItem no longer needs any further processing by saying "true"
+                // when returned false, menu processing will continue by calling the hosting activity
+            // onOptionItemSelected
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
     private fun updateUI(crimes: List<Crime>) {
 //        val crimes = crimeListViewModel.crimes // Old ViewModel
         adapter = CrimeAdapter(crimes) // Send crimes to CrimeAdapter

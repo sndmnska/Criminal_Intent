@@ -19,5 +19,8 @@ class CrimeListViewModel: ViewModel() {
     // Calls crimeRepository to get the crimes from the already existant database.
     private val crimeRepository = CrimeRepository.get()
     val crimeListLiveData = crimeRepository.getCrimes()
+    fun addCrime(crime: Crime) {
+        crimeRepository.addCrime(crime)
+    }
 
 }
