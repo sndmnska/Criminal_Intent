@@ -96,18 +96,20 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         super.onStart()
 
         val titleWatcher = object : TextWatcher {
-            override fun beforeTextChanged(sequence: CharSequence,
-                                           start: Int,
-                                           before: Int,
-                                           count: Int
+            override fun beforeTextChanged(
+                sequence: CharSequence,
+                start: Int,
+                before: Int,
+                count: Int
             ) {
                 // this space intentionally left blank
             }
 
-            override fun onTextChanged(sequence: CharSequence,
-                                       start: Int,
-                                       before: Int,
-                                       count: Int
+            override fun onTextChanged(
+                sequence: CharSequence,
+                start: Int,
+                before: Int,
+                count: Int
             ) {
                 crime.title = sequence.toString()
             }
@@ -124,7 +126,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
             }
         }
 
-        dateButton.setOnClickListener{
+        dateButton.setOnClickListener {
             DatePickerFragment.newInstance(crime.date).apply {
                 setTargetFragment(this@CrimeFragment, REQUEST_DATE)
                 show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
@@ -136,18 +138,20 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, getCrimeReport())
                 putExtra(
-                    Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject))
+                    Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject)
+                )
             }.also { intent ->
                 val chooserIntent =
                     Intent.createChooser(intent, getString(R.string.send_report))
-                 startActivity(intent)}
+                startActivity(intent)
+            }
         }
 
         suspectButton.apply {
             val pickContactIntent =
                 Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
 
-            setOnClickListener{
+            setOnClickListener {
                 startActivityForResult(pickContactIntent, REQUEST_CONTACT)
             }
 
@@ -156,6 +160,8 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
 
 
             // guards against no contacts app when an Intent can't follow through.
+            /*Seems to have issues with finding the contacts app which does exist.
+            * Possible */
             val packageManager: PackageManager = requireActivity().packageManager
             val resolvedActivity: ResolveInfo? =
                 packageManager.resolveActivity(pickContactIntent, PackageManager.MATCH_DEFAULT_ONLY)
@@ -164,6 +170,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
             }
         }
     }
+
 
     override fun onStop() {
         super.onStop()
@@ -188,12 +195,12 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
             resultCode != Activity.RESULT_OK -> return
 
             requestCode == REQUEST_CONTACT && data != null -> {
-                val contactUri: Uri? =  data.data
+                val contactUri: Uri =  data.data!!   // Data is not null from null check above.
                 // specify which fields you want your query to return values for
                 val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
                 // Perform your query - the contractUri is like a "where" clause here
                 val cursor = requireActivity().contentResolver
-                    // TODO for some reason the null check isn't going through...
+
                     .query(contactUri, queryFields, null, null, null)
                 cursor?.use {
                     // verify cursor contains at least one result
